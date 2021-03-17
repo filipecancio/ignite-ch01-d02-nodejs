@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
-const { v4: uuidv4, validate } = require('uuid');
+const { v4: uuidv4, validate: uuidValidate } = require('uuid');
 
 const app = express();
 app.use(express.json());
@@ -25,10 +25,9 @@ function checksExistsUserAccount(request, response, next) {
 
 function checksCreateTodosUserAvailability(request, response, next) {
   const {user} = request;
-  const pro = user.pro;
-  const todosLength = user.todos.length
+  const {pro, todos} = user;
 
-  if(todosLength > 10 && pro == false){
+  if(todos.length >= 10 && pro === false){
     return response.status(403).json({ error: 'User used all todos limited.' });
   }
 
@@ -38,6 +37,10 @@ function checksCreateTodosUserAvailability(request, response, next) {
 function checksTodoExists(request, response, next) {
   const {username} = request.headers;
   const {id} = request.params;
+
+  if(!uuidValidate(id)) {
+    return response.status(400).json({ error: 'Todo id is invalid'});
+  }
 
   const user = users.find(user => user.username === username);
 
